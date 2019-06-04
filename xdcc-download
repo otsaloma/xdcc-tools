@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+
+import os
+import shutil
+import subprocess
+import sys
+import time
+
+if len(sys.argv[1:]) == 0 or sys.argv[1] in ("-h", "--help", "help"):
+    name = os.path.basename(__file__)
+    print("Usage: {} SERVER CHANNEL NICK PACK".format(name))
+    print("  e.g. {} irc.abc.xyz cool-stuff bob 123\n".format(name))
+    print("Usage: {} URL MESSAGE".format(name))
+    print("  e.g. {} irc://irc.abc.xyz/cool-stuff '/msg bob xdcc send #123'".format(name))
+    raise SystemExit(1)
+
+if len(sys.argv[1:]) == 4:
+    server  = sys.argv[1].lower()
+    channel = sys.argv[2].lower().lstrip("#")
+    nick    = sys.argv[3].lower()
+    pack    = sys.argv[4].lower().lstrip("#")
+
+if len(sys.argv[1:]) == 2:
+    server  = sys.argv[1].split("//")[1].split("/")[0].lower()
+    channel = sys.argv[1].split("//")[1].split("/")[1].lower().lstrip("#")
+    nick    = sys.argv[2].split()[1].lower()
+    pack    = sys.argv[2].split()[4].lower().lstrip("#")
+
+# Copy profile to a temporary directory so that we can easily
+# run multiple instances connected to different servers.
+directory = "/tmp/weechat-{}".format(server)
+if not os.path.isdir(directory):
+    profile = os.path.expanduser("~/.weechat")
+    print("Copying {} → {}".format(profile, directory))
+    shutil.copytree(profile, directory)
+
+WAIT_TIMES = {
+    # "You have to be connected for at least 60 seconds or identified
+    # to a registered nick before sending private messages."
+    "the.source": 60,
+}
+
+# If pipe exists, an instance is running, otherwise start a new instance.
+# https://weechat.org/files/doc/stable/weechat_user.en.html#fifo_plugin
+pipe = os.path.join(directory, "weechat_fifo")
+if not os.path.exists(pipe):
+    # TODO: Select terminal based on desktop environment.
+    command = "gnome-terminal --window --quiet -- weechat -d {} irc://{}"
+    command = command.format(directory, server)
+    print("Launching a new weechat instance...")
+    subprocess.run(command, shell=True)
+    print("Waiting for connection to be completed...")
+    time.sleep(WAIT_TIMES.get(channel, 10))
+
+def send_command(command, wait=3):
+    print("Sending {}".format(command))
+    subprocess.run(
+        "echo '*/buffer -\n*{}' > {}"
+        .format(command, pipe), shell=True)
+    time.sleep(wait)
+
+CHAT_CHANNELS = {
+    "beast-xdcc": "beast-chat",
+    "elitewarez": "elite-chat",
+    "moviegods": "mg-chat",
+    "zombie-warez": "zw-chat",
+}
+
+# Join channel and any possible mandatory chat channels.
+channels = [channel, CHAT_CHANNELS.get(channel)]
+for x in filter(None, channels):
+    send_command("/join #{}".format(x))
+
+# Send message to request pack from nick.
+send_command("/msg {} xdcc send #{}".format(nick, pack))
