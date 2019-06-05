@@ -38,6 +38,7 @@ if len(sys.argv[1:]) == 2:
 results = []
 url = "http://www.xdcc.eu/search.php?searchkey={}"
 url = url.format(urllib.parse.quote(sys.argv[1]))
+print("\n{}".format(url))
 page = requests.get(url).text
 soup = bs4.BeautifulSoup(page, "html.parser")
 for row in soup.select("#table tbody tr"):
