@@ -26,6 +26,15 @@ if len(sys.argv[1:]) == 2:
     nick    = sys.argv[2].split()[1].lower()
     pack    = sys.argv[2].split()[4].lower().lstrip("#")
 
+def print0(text):
+    print(text, end="", flush=True)
+
+def print_wait(wait):
+    for i in range(wait):
+        print0(".")
+        time.sleep(1)
+    print("", flush=True)
+
 # Copy profile to a temporary directory so that we can easily
 # run multiple instances connected to different servers.
 directory = "/tmp/weechat-{}".format(server)
@@ -49,15 +58,15 @@ if not os.path.exists(pipe):
     command = command.format(directory, server)
     print("Launching a new weechat instance...")
     subprocess.run(command, shell=True)
-    print("Waiting for connection to be completed...")
-    time.sleep(WAIT_TIMES.get(channel, 10))
+    print0("Waiting for connection to be completed")
+    print_wait(WAIT_TIMES.get(channel, 10))
 
 def send_command(command, wait=3):
-    print("Sending {}".format(command))
+    print0("Sending {}".format(command))
     subprocess.run(
         "echo '*/buffer -\n*{}' > {}"
         .format(command, pipe), shell=True)
-    time.sleep(wait)
+    print_wait(wait)
 
 CHAT_CHANNELS = {
     "beast-xdcc": "beast-chat",
