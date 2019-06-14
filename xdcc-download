@@ -31,8 +31,9 @@ def print0(text):
 
 def print_wait(wait):
     for i in range(wait):
+        time.sleep(0.5)
         print0(".")
-        time.sleep(1)
+        time.sleep(0.5)
     print("", flush=True)
 
 # Copy profile to a temporary directory so that we can easily
