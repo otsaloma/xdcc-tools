@@ -53,6 +53,7 @@ WAIT_TIMES = {
 # If pipe exists, an instance is running, otherwise start a new instance.
 # https://weechat.org/files/doc/stable/weechat_user.en.html#fifo_plugin
 pipe = os.path.join(directory, "weechat_fifo")
+joined_file = os.path.join(directory, "joined.txt")
 if not os.path.exists(pipe):
     # TODO: Select terminal based on desktop environment.
     command = "gnome-terminal --window --quiet -- weechat -d {} irc://{}"
@@ -61,6 +62,7 @@ if not os.path.exists(pipe):
     subprocess.run(command, shell=True)
     print0("Waiting for connection to be completed")
     print_wait(WAIT_TIMES.get(channel, 10))
+    open(joined_file, "w").write("")
 
 def send_command(command, wait=3):
     print0("Sending {}".format(command))
@@ -79,7 +81,9 @@ CHAT_CHANNELS = {
 # Join channel and any possible mandatory chat channels.
 channels = [channel, CHAT_CHANNELS.get(channel)]
 for x in filter(None, channels):
+    if x in open(joined_file, "r").read().splitlines(): continue
     send_command("/join #{}".format(x))
+    open(joined_file, "a").write(x + "\n")
 
 # Send message to request pack from nick.
 send_command("/msg {} xdcc send #{}".format(nick, pack))
