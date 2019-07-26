@@ -7,6 +7,9 @@ import subprocess
 import sys
 import urllib.parse
 
+if not sys.argv[1:]:
+    sys.argv.append("--help")
+
 if sys.argv[1] in ["-h", "--help", "help"] or len(sys.argv[1:]) not in [1, 2]:
     name = os.path.basename(__file__)
     print("Usage: {} QUERY".format(name))

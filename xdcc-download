@@ -6,6 +6,9 @@ import subprocess
 import sys
 import time
 
+if not sys.argv[1:]:
+    sys.argv.append("--help")
+
 if sys.argv[1] in ["-h", "--help", "help"] or len(sys.argv[1:]) not in [4, 2]:
     name = os.path.basename(__file__)
     print("Usage: {} SERVER CHANNEL NICK PACK".format(name))
