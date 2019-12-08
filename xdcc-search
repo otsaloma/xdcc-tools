@@ -2,6 +2,7 @@
 
 import bs4
 import os
+import readline
 import requests
 import subprocess
 import sys
@@ -63,6 +64,8 @@ for i, result in enumerate(results[:10]):
     print("\n{num:2d}. {filename} ({filesize})".format(num=i+1, **result))
     print("{p}{nick} @ {channel}".format(p=" "*4, **result))
 
+# Ensure readline is loaded so that arrow keys work right.
+assert readline
 response = input("\nDownload # or new query: ")
 if response.isdigit():
     # Download pack with given number.
